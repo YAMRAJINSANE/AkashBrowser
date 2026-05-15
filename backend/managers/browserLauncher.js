@@ -1,6 +1,7 @@
-const { spawn } = require("child_process");
+const { spawn, execSync } = require("child_process");
 const path = require("path");
 const fs = require("fs");
+const os = require("os");
 
 class BrowserLauncher {
   constructor() {
@@ -114,6 +115,8 @@ class BrowserLauncher {
         "--disable-component-extensions-with-background-pages",
         // Force autoplay without requiring a user gesture
         "--autoplay-policy=no-user-gesture-required",
+        // Mute all audio for this Chrome instance
+        "--mute-audio",
       ];
 
       if (profile.proxy && profile.proxyType) {
@@ -192,6 +195,105 @@ class BrowserLauncher {
       console.error("Error opening URL in browser:", error);
       throw error;
     }
+  }
+
+  // ─── Focus (bring to foreground) ─────────────────────────────────────────────
+  // Finds the Chrome window for this profile by matching --user-data-dir in the
+  // process command line (via WMI), then raises it using AttachThreadInput +
+  // SetForegroundWindow — bypasses Windows' foreground-lock restriction.
+  async focusBrowser(profileId) {
+    const processData = this.processes.get(profileId);
+    if (!processData) {
+      return { success: false, message: "Browser not running" };
+    }
+
+    const profile = processData.profile;
+    const userDataDir =
+      profile.profilePath ||
+      path.join(
+        process.env.APPDATA || "~",
+        ".akash-browser",
+        `profile-${profileId}`,
+      );
+
+    if (process.platform === "win32") {
+      const psScript = `
+Add-Type @"
+using System;
+using System.Runtime.InteropServices;
+public class WinFocus {
+    [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
+    [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+    [DllImport("user32.dll")] public static extern bool BringWindowToTop(IntPtr hWnd);
+    [DllImport("user32.dll")] public static extern int GetWindowThreadProcessId(IntPtr hWnd, out int lpdwProcessId);
+    [DllImport("kernel32.dll")] public static extern int GetCurrentThreadId();
+    [DllImport("user32.dll")] public static extern bool AttachThreadInput(int idAttach, int idAttachTo, bool fAttach);
+}
+"@
+
+# Match Chrome processes whose command line contains our exact user-data-dir
+$dir = "${userDataDir}"
+$chromePids = Get-WmiObject Win32_Process -Filter "Name='chrome.exe'" -ErrorAction SilentlyContinue |
+    Where-Object { $_.CommandLine -like "*$dir*" } |
+    Select-Object -ExpandProperty ProcessId
+
+# Among matched PIDs, find one that has a real visible window
+$target = Get-Process -Name chrome -ErrorAction SilentlyContinue |
+    Where-Object { $chromePids -contains $_.Id -and $_.MainWindowHandle -ne [IntPtr]::Zero } |
+    Select-Object -First 1
+
+# Fallback: any visible Chrome window
+if (-not $target) {
+    $target = Get-Process -Name chrome -ErrorAction SilentlyContinue |
+        Where-Object { $_.MainWindowHandle -ne [IntPtr]::Zero } |
+        Select-Object -First 1
+}
+
+if ($target) {
+    $hwnd = $target.MainWindowHandle
+    $dummy = 0
+    $targetThread = [WinFocus]::GetWindowThreadProcessId($hwnd, [ref]$dummy)
+    $currentThread = [WinFocus]::GetCurrentThreadId()
+
+    [WinFocus]::ShowWindow($hwnd, 9)                                   # SW_RESTORE (un-minimise)
+    [WinFocus]::AttachThreadInput($currentThread, $targetThread, $true)  # bypass foreground-lock
+    [WinFocus]::BringWindowToTop($hwnd)
+    [WinFocus]::SetForegroundWindow($hwnd)
+    [WinFocus]::AttachThreadInput($currentThread, $targetThread, $false)
+
+    Write-Output "focused"
+} else {
+    Write-Output "not_found"
+}
+`;
+
+      const tmpFile = path.join(os.tmpdir(), `akash-focus-${profileId}.ps1`);
+      try {
+        fs.writeFileSync(tmpFile, psScript, "utf8");
+        const result = execSync(
+          `powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "${tmpFile}"`,
+          { timeout: 8000, encoding: "utf8" },
+        ).trim();
+        return { success: result === "focused", message: result };
+      } catch (e) {
+        console.warn("focusBrowser error:", e.message);
+        return { success: false, message: e.message };
+      } finally {
+        try { fs.unlinkSync(tmpFile); } catch (_) {}
+      }
+    }
+
+    // macOS
+    if (process.platform === "darwin") {
+      try {
+        execSync(`osascript -e 'tell application "Google Chrome" to activate'`, { timeout: 3000 });
+        return { success: true };
+      } catch (e) {
+        return { success: false, message: e.message };
+      }
+    }
+
+    return { success: false, message: "Focus not supported on this platform" };
   }
 
   // ─── Status ──────────────────────────────────────────────────────────────────

@@ -18,6 +18,15 @@ export function useBrowser() {
     }
   }, []);
 
+  const focusBrowser = useCallback(async (profileId) => {
+    try {
+      return await window.electronAPI.focusBrowser(profileId);
+    } catch (error) {
+      console.error("Error focusing browser:", error);
+      throw error;
+    }
+  }, []);
+
   const launchBrowser = useCallback(async (profileId) => {
     try {
       setLoading(true);
@@ -118,6 +127,7 @@ export function useBrowser() {
   return {
     launchBrowser,
     closeBrowser,
+    focusBrowser,
     getStatus,
     launchAllBrowsers,
     closeAllBrowsers,

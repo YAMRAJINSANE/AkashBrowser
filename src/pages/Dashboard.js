@@ -8,6 +8,7 @@ function Dashboard({
   loading,
   onLaunchBrowser,
   onCloseBrowser,
+  onFocusBrowser,
   onDeleteProfile,
   onEditProfile,
   browserStatus,
@@ -61,6 +62,7 @@ function Dashboard({
               isRunning={browserStatus[profile.id]?.running}
               onLaunch={() => onLaunchBrowser(profile.id)}
               onClose={() => onCloseBrowser(profile.id)}
+              onFocus={() => onFocusBrowser(profile.id)}
               onDelete={() => {
                 if (window.confirm(`Delete profile "${profile.name}"?`)) {
                   onDeleteProfile(profile.id);

@@ -110,6 +110,13 @@ ipcMain.handle("delete-profile", async (event, id) => {
 // IPC Handlers for Browser Control
 ipcMain.handle("launch-browser", async (event, profileId) => {
   try {
+    // If already running, bring it to foreground instead of launching again
+    const currentStatus = browserLauncher.getStatus(profileId);
+    if (currentStatus && currentStatus.running) {
+      const focusResult = await browserLauncher.focusBrowser(profileId);
+      return { success: true, focused: true, alreadyRunning: true, ...focusResult };
+    }
+
     const profile = await profileManager.getProfile(profileId);
     if (!profile) {
       throw new Error("Profile not found");
@@ -135,6 +142,15 @@ ipcMain.handle("get-browser-status", async (event, profileId) => {
     return browserLauncher.getStatus(profileId);
   } catch (error) {
     console.error("Error getting browser status:", error);
+    throw error;
+  }
+});
+
+ipcMain.handle("focus-browser", async (event, profileId) => {
+  try {
+    return await browserLauncher.focusBrowser(profileId);
+  } catch (error) {
+    console.error("Error focusing browser:", error);
     throw error;
   }
 });

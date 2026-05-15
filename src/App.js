@@ -16,7 +16,7 @@ function App() {
   const [searchTerm, setSearchTerm] = useState("");
   const { profiles, loading, createProfile, deleteProfile, updateProfile } =
     useProfiles();
-  const { launchBrowser, closeBrowser, launchAllBrowsers, closeAllBrowsers, openUrlInAll, browserStatus } = useBrowser();
+  const { launchBrowser, closeBrowser, focusBrowser, launchAllBrowsers, closeAllBrowsers, openUrlInAll, browserStatus } = useBrowser();
   const { addToast, ToastContainer } = useToast();
 
   useEffect(() => {
@@ -57,8 +57,12 @@ function App() {
 
   const handleLaunchBrowser = async (profileId) => {
     try {
-      await launchBrowser(profileId);
-      addToast("Browser launched", "success");
+      const result = await launchBrowser(profileId);
+      if (result && result.alreadyRunning) {
+        addToast("Browser window brought to front 🔍", "info");
+      } else {
+        addToast("Browser launched", "success");
+      }
     } catch (error) {
       console.error("Error launching browser:", error);
       addToast("Failed to launch browser", "error");
@@ -82,6 +86,20 @@ function App() {
     } catch (error) {
       console.error("Error renaming profile:", error);
       addToast("Failed to rename profile", "error");
+    }
+  };
+
+  const handleFocusBrowser = async (profileId) => {
+    try {
+      const result = await focusBrowser(profileId);
+      if (result && result.success) {
+        addToast("Browser brought to front ⚡", "info");
+      } else {
+        addToast("Browser is running — check your taskbar", "info");
+      }
+    } catch (error) {
+      console.error("Error focusing browser:", error);
+      addToast("Failed to focus browser", "error");
     }
   };
 
@@ -144,6 +162,7 @@ function App() {
           loading={loading}
           onLaunchBrowser={handleLaunchBrowser}
           onCloseBrowser={handleCloseBrowser}
+          onFocusBrowser={handleFocusBrowser}
           onDeleteProfile={handleDeleteProfile}
           onEditProfile={handleEditProfile}
           browserStatus={browserStatus}

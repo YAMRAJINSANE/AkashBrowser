@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Play, Pause, Trash2, Edit2, Check, X, Wifi } from "lucide-react";
+import { Play, Pause, Trash2, Edit2, Check, X, Wifi, MonitorCheck } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
 
@@ -8,6 +8,7 @@ function ProfileCard({
   isRunning,
   onLaunch,
   onClose,
+  onFocus,
   onDelete,
   onEdit, // onEdit(newName)
 }) {
@@ -128,13 +129,23 @@ function ProfileCard({
       {/* Actions */}
       <div className="flex gap-2">
         {isRunning ? (
-          <button
-            onClick={onClose}
-            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 transition-all duration-200"
-          >
-            <Pause size={16} />
-            <span className="text-sm font-medium">Close</span>
-          </button>
+          <>
+            <button
+              onClick={onClose}
+              className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 transition-all duration-200"
+            >
+              <Pause size={16} />
+              <span className="text-sm font-medium">Close</span>
+            </button>
+            <button
+              onClick={onFocus}
+              title="Bring browser window to front"
+              className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 transition-all duration-200"
+            >
+              <MonitorCheck size={16} />
+              <span className="text-sm font-medium">Focus</span>
+            </button>
+          </>
         ) : (
           <button
             onClick={onLaunch}

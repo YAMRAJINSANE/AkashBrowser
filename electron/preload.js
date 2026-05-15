@@ -12,6 +12,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
   // Browser APIs
   launchBrowser: (profileId) => ipcRenderer.invoke("launch-browser", profileId),
   closeBrowser: (profileId) => ipcRenderer.invoke("close-browser", profileId),
+  focusBrowser: (profileId) => ipcRenderer.invoke("focus-browser", profileId),
   getBrowserStatus: (profileId) =>
     ipcRenderer.invoke("get-browser-status", profileId),
 
