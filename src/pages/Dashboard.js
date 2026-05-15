@@ -9,6 +9,7 @@ function Dashboard({
   onLaunchBrowser,
   onCloseBrowser,
   onDeleteProfile,
+  onEditProfile,
   browserStatus,
 }) {
   if (loading) {
@@ -65,9 +66,7 @@ function Dashboard({
                   onDeleteProfile(profile.id);
                 }
               }}
-              onEdit={() => {
-                // Edit functionality
-              }}
+              onEdit={(newName) => onEditProfile(profile.id, newName)}
             />
           ))}
         </AnimatePresence>

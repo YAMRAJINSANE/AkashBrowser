@@ -15,6 +15,11 @@ contextBridge.exposeInMainWorld("electronAPI", {
   getBrowserStatus: (profileId) =>
     ipcRenderer.invoke("get-browser-status", profileId),
 
+  // Bulk Browser APIs
+  launchAllBrowsers: () => ipcRenderer.invoke("launch-all-browsers"),
+  closeAllBrowsers: () => ipcRenderer.invoke("close-all-browsers"),
+  openUrlInAll: (url) => ipcRenderer.invoke("open-url-in-all", url),
+
   // Listeners
   onProfileCreated: (callback) => ipcRenderer.on("profile-created", callback),
   onProfileDeleted: (callback) => ipcRenderer.on("profile-deleted", callback),

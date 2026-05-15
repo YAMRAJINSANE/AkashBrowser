@@ -139,6 +139,85 @@ ipcMain.handle("get-browser-status", async (event, profileId) => {
   }
 });
 
+// IPC Handlers for Bulk Browser Control
+ipcMain.handle("launch-all-browsers", async () => {
+  try {
+    const profiles = await profileManager.getAllProfiles();
+    const results = [];
+    for (const profile of profiles) {
+      try {
+        const result = await browserLauncher.launch(profile.id, profile);
+        results.push({ profileId: profile.id, success: true, pid: result.pid });
+        if (mainWindow) {
+          mainWindow.webContents.send("browser-status-changed", {
+            profileId: profile.id,
+            status: { running: true, pid: result.pid, startedAt: new Date().toISOString() },
+          });
+        }
+      } catch (e) {
+        results.push({ profileId: profile.id, success: false });
+      }
+    }
+    return results;
+  } catch (error) {
+    console.error("Error launching all browsers:", error);
+    throw error;
+  }
+});
+
+ipcMain.handle("close-all-browsers", async () => {
+  try {
+    const profiles = await profileManager.getAllProfiles();
+    for (const profile of profiles) {
+      try {
+        await browserLauncher.closeBrowser(profile.id);
+        if (mainWindow) {
+          mainWindow.webContents.send("browser-status-changed", {
+            profileId: profile.id,
+            status: { running: false },
+          });
+        }
+      } catch (e) { /* already closed */ }
+    }
+    return { success: true };
+  } catch (error) {
+    console.error("Error closing all browsers:", error);
+    throw error;
+  }
+});
+
+ipcMain.handle("open-url-in-all", async (event, url) => {
+  try {
+    const profiles = await profileManager.getAllProfiles();
+    const results = [];
+    for (const profile of profiles) {
+      try {
+        // If browser is already running, navigate it; otherwise launch with the URL
+        const status = browserLauncher.getStatus(profile.id);
+        if (status && status.running) {
+          await browserLauncher.openUrl(profile.id, url);
+        } else {
+          const profileWithUrl = { ...profile, startUrl: url };
+          await browserLauncher.launch(profile.id, profileWithUrl);
+          if (mainWindow) {
+            mainWindow.webContents.send("browser-status-changed", {
+              profileId: profile.id,
+              status: { running: true, startedAt: new Date().toISOString() },
+            });
+          }
+        }
+        results.push({ profileId: profile.id, success: true });
+      } catch (e) {
+        results.push({ profileId: profile.id, success: false });
+      }
+    }
+    return results;
+  } catch (error) {
+    console.error("Error opening URL in all browsers:", error);
+    throw error;
+  }
+});
+
 function createMenu() {
   const template = [
     {

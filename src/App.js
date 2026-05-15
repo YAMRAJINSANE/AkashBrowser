@@ -16,7 +16,7 @@ function App() {
   const [searchTerm, setSearchTerm] = useState("");
   const { profiles, loading, createProfile, deleteProfile, updateProfile } =
     useProfiles();
-  const { launchBrowser, closeBrowser, browserStatus } = useBrowser();
+  const { launchBrowser, closeBrowser, launchAllBrowsers, closeAllBrowsers, openUrlInAll, browserStatus } = useBrowser();
   const { addToast, ToastContainer } = useToast();
 
   useEffect(() => {
@@ -75,6 +75,43 @@ function App() {
     }
   };
 
+  const handleEditProfile = async (profileId, newName) => {
+    try {
+      await updateProfile(profileId, { name: newName });
+      addToast(`Renamed to "${newName}"`, "success");
+    } catch (error) {
+      console.error("Error renaming profile:", error);
+      addToast("Failed to rename profile", "error");
+    }
+  };
+
+  const handleLaunchAll = async () => {
+    try {
+      await launchAllBrowsers();
+      addToast("All browsers launched", "success");
+    } catch (error) {
+      addToast("Failed to launch all browsers", "error");
+    }
+  };
+
+  const handleCloseAll = async () => {
+    try {
+      await closeAllBrowsers();
+      addToast("All browsers closed", "info");
+    } catch (error) {
+      addToast("Failed to close all browsers", "error");
+    }
+  };
+
+  const handleOpenUrlInAll = async (url) => {
+    try {
+      await openUrlInAll(url);
+      addToast(`Opened URL in all browsers`, "success");
+    } catch (error) {
+      addToast("Failed to open URL in all browsers", "error");
+    }
+  };
+
   const filteredProfiles = profiles.filter((profile) =>
     profile.name.toLowerCase().includes(searchTerm.toLowerCase()),
   );
@@ -97,14 +134,18 @@ function App() {
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
           onCreateProfile={() => setShowProfileModal(true)}
+          onLaunchAll={handleLaunchAll}
+          onCloseAll={handleCloseAll}
+          onOpenUrlInAll={handleOpenUrlInAll}
         />
 
         <Dashboard
           profiles={filteredProfiles}
           loading={loading}
-          onLaunchBrowser={launchBrowser}
-          onCloseBrowser={closeBrowser}
-          onDeleteProfile={deleteProfile}
+          onLaunchBrowser={handleLaunchBrowser}
+          onCloseBrowser={handleCloseBrowser}
+          onDeleteProfile={handleDeleteProfile}
+          onEditProfile={handleEditProfile}
           browserStatus={browserStatus}
         />
       </div>
