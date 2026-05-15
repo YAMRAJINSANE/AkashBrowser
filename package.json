@@ -1,0 +1,82 @@
+{
+  "name": "akash-browser",
+  "version": "1.0.0",
+  "description": "Professional Desktop Browser Profile Manager",
+  "main": "electron/main.js",
+  "homepage": "./",
+  "author": "Your Name",
+  "license": "MIT",
+  "scripts": {
+    "start": "concurrently \"npm run react-start\" \"wait-on http://localhost:3000 && npm run electron-start\"",
+    "react-start": "react-scripts start",
+    "electron-start": "electron .",
+    "build": "npm run react-build && npm run electron-build",
+    "react-build": "react-scripts build",
+    "electron-build": "electron-builder",
+    "eject": "react-scripts eject"
+  },
+  "dependencies": {
+    "date-fns": "^2.30.0",
+    "electron-is-dev": "^2.0.0",
+    "electron-store": "^8.1.0",
+    "framer-motion": "^10.16.4",
+    "lucide-react": "^0.263.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1",
+    "sqlite3": "^5.1.6",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.14",
+    "concurrently": "^8.2.1",
+    "electron": "^26.6.10",
+    "electron-builder": "^24.5.0",
+    "electron-squirrel-startup": "^1.0.1",
+    "postcss": "^8.4.28",
+    "tailwindcss": "^3.3.3",
+    "wait-on": "^7.0.1"
+  },
+  "build": {
+    "appId": "com.akashbrowser.app",
+    "productName": "Akash Browser",
+    "files": [
+      "build/**/*",
+      "electron/**/*",
+      "backend/**/*",
+      "node_modules/**/*"
+    ],
+    "directories": {
+      "buildResources": "assets"
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "certificateFile": null,
+      "signingHashAlgorithms": [
+        "sha256"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Akash Browser"
+    }
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

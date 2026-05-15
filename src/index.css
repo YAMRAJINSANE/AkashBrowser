@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  @apply transition-colors duration-200;
+}
+
+body {
+  @apply bg-dark-950 text-gray-100 font-sans;
+}
+
+::-webkit-scrollbar {
+  @apply w-2 h-2;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-dark-800;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-dark-600 rounded hover:bg-dark-500;
+}
+
+.glass {
+  @apply backdrop-blur-md bg-white/10 border border-white/20 rounded-lg;
+}
+
+.glass-sm {
+  @apply backdrop-blur-sm bg-white/5 border border-white/10;
+}
+
+.gradient-text {
+  @apply bg-gradient-to-r from-accent-400 to-accent-600 bg-clip-text text-transparent;
+}
+
+.btn-primary {
+  @apply px-4 py-2 rounded-lg bg-accent-600 hover:bg-accent-700 text-white font-medium transition-all duration-200 cursor-pointer;
+}
+
+.btn-secondary {
+  @apply px-4 py-2 rounded-lg bg-dark-700 hover:bg-dark-600 text-gray-100 font-medium transition-all duration-200 cursor-pointer border border-dark-600;
+}
+
+.btn-danger {
+  @apply px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-medium transition-all duration-200 cursor-pointer;
+}
+
+.input-field {
+  @apply px-4 py-2 rounded-lg bg-dark-800 border border-dark-700 text-gray-100 placeholder-gray-500 focus:outline-none focus:border-accent-500 focus:ring-1 focus:ring-accent-500;
+}
+
+.card {
+  @apply bg-dark-800 border border-dark-700 rounded-xl p-4 hover:border-dark-600 transition-all duration-200;
+}
+
+.card-hover {
+  @apply card hover:bg-dark-700 hover:shadow-lg;
+}
